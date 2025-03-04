@@ -2,11 +2,11 @@ import type {Board} from "./Board";
 import type {Player} from "./types";
 
 export class RandomPlayer implements Player {
-  #name: string;
   #color: string;
+  name: string;
 
   constructor(name: string, color: string) {
-    this.#name = name;
+    this.name = name;
     this.#color = color;
   }
 
