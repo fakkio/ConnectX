@@ -1,12 +1,13 @@
 import {Board} from "./Board";
 import {HumanPlayer} from "./HumanPlayer";
 import {RandomPlayer} from "./RandomPlayer";
-import {Connect4Error, GameState, MovesHistory, Player} from "./types";
+import {Connect4Error, GameState} from "./types";
+
+const initialState: GameState = {status: "play", history: []};
 
 export class Game {
   #turn: number = 0;
-  #history: MovesHistory = [];
-  #gameState: GameState = {status: "play"};
+  #gameState: GameState = {status: "ready"};
   numCols = 7;
   numRows = 6;
   players = [new HumanPlayer("1", "#ff010b"), new RandomPlayer("2", "#ffd918")];
@@ -18,8 +19,7 @@ export class Game {
 
   async start() {
     this.#turn = 0;
-    this.#history = [];
-    this.#gameState = {status: "play"};
+    this.#gameState = initialState;
     this.board = new Board(this.numCols, this.numRows, this.players);
 
     const gameGenerator = this.turnGenerator();
@@ -27,6 +27,7 @@ export class Game {
       console.log(turnResult);
     }
 
+    console.log(this.#gameState);
     return this.#gameState;
   }
 
@@ -55,18 +56,19 @@ export class Game {
 
     this.board.insert(col, this.currentPlayer);
     const move = {col, player: this.currentPlayer};
-    this.#history.push(move);
+    this.#gameState.history.push(move);
     this.#turn++;
 
     const win = this.board.checkWin(move);
     if (win) {
       this.#gameState = {
+        ...this.#gameState,
         status: "win",
         winner: win.winner,
         discsCoordinates: win.discsCoordinates,
       };
     } else if (this.board.isBoardFull()) {
-      this.#gameState = {status: "draw"};
+      this.#gameState = {...this.#gameState, status: "draw"};
     }
 
     return this.#gameState;
