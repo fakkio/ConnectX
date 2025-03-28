@@ -1,23 +1,15 @@
+import {ConnectX} from "@/engine/ConnectX";
 import {Connect4Error, Move, Player} from "./types";
 
 export class Board {
-  grid: Player[][] = [];
   readonly #numCols: number;
   readonly #numRows: number;
-  readonly #players: Player[];
+  readonly #game: ConnectX;
 
-  constructor(numCols: number, numRows: number, players: Player[]) {
+  constructor(game: ConnectX, numCols: number, numRows: number) {
     this.#numRows = numRows;
     this.#numCols = numCols;
-    this.#players = players;
-
-    for (let c = 0; c < numCols; c += 1) {
-      this.grid[c] = [];
-    }
-  }
-
-  get numRows() {
-    return this.#numRows;
+    this.#game = game;
   }
 
   /**
@@ -31,11 +23,22 @@ export class Board {
 
     for (let c = 0; c < this.#numCols; c += 1) {
       for (let r = 0; r < this.#numRows; r += 1) {
-        fullGrid[r][c] = this.grid[c][r] ?? null;
+        fullGrid[r][c] = this.#game.getGameState().board.grid[c][r] ?? null;
       }
     }
 
     return fullGrid;
+  }
+
+  init() {
+    const initGrid: Player[][] = [];
+    for (let c = 0; c < this.#numCols; c += 1) {
+      initGrid[c] = [];
+    }
+
+    this.#game.setGameState((state) => {
+      state.board = {cols: this.#numCols, rows: this.#numRows, grid: initGrid};
+    });
   }
 
   insert(col: number, player: Player) {
@@ -43,11 +46,14 @@ export class Board {
       throw new Connect4Error(`Invalid column index ${col}`);
     }
 
-    if (this.grid[col].length >= this.#numRows) {
+    if (this.#game.getGameState().board.grid[col].length >= this.#numRows) {
       throw new Connect4Error(`Column ${col} is full`);
     }
 
-    this.grid[col].push(player);
+    this.#game.setGameState((state) => {
+      state.board.grid[col].push(player);
+    });
+    console.log("insert", this.#game.getGameState().board.grid);
   }
 
   checkWin(
@@ -57,14 +63,18 @@ export class Board {
       delta: [number, number],
     ): [col: number, row: number][] | undefined => {
       const {col, player} = lastMove;
-      const row = this.grid[col].length - 1;
+      const row = this.#game.getGameState().board.grid[col].length - 1;
       let series: [col: number, row: number][] = [];
 
       for (let i = -3; i <= series.length; i++) {
         const deltaX = delta[0] * i;
         const deltaY = delta[1] * i;
 
-        if (this.grid?.[col + deltaX]?.[row + deltaY] === player) {
+        if (
+          this.#game.getGameState().board.grid?.[col + deltaX]?.[
+            row + deltaY
+          ] === player
+        ) {
           series.push([col + deltaX, row + deltaY]);
         } else {
           series = [];
@@ -101,7 +111,9 @@ export class Board {
   }
 
   isBoardFull(): boolean {
-    return this.grid.every((column) => column.length === this.#numRows);
+    return this.#game
+      .getGameState()
+      .board.grid.every((column) => column.length === this.#numRows);
   }
 
   toString() {
@@ -110,12 +122,10 @@ export class Board {
     );
     for (let c = 0; c < this.#numCols; c += 1) {
       for (let r = 0; r < this.#numRows; r += 1) {
-        asciiGrid[this.#numRows - r - 1][c] =
-          this.grid[c][r] === this.#players[0]
-            ? "1"
-            : this.grid[c][r] === this.#players[1]
-              ? "2"
-              : ".";
+        asciiGrid[this.#numRows - r - 1][c] = this.#game.getGameState().board
+          .grid[c][r]
+          ? this.#game.getGameState().board.grid[c][r].name
+          : ".";
       }
     }
     return asciiGrid.map((row) => row.join(" ")).join("\n");

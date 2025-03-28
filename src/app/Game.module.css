@@ -1,0 +1,108 @@
+.boardContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.board {
+  position: relative;
+  width: 450px;
+  height: 450px;
+}
+
+.front {
+  position: absolute;
+  top: 60px;
+  border: 15px solid hsl(210, 100%, 50%);
+  border-radius: 4px;
+  width: 450px;
+  height: 390px;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    transparent,
+    transparent 18px,
+    hsl(210, 100%, 50%) 20px,
+    hsl(210, 100%, 50%) 23px,
+    hsl(210, 100%, 56%) 23px,
+    hsl(210, 100%, 56%) 36px,
+    hsl(210, 100%, 50%)
+  )
+  center top/60px 60px;
+}
+
+.field {
+  position: absolute;
+  top: 0;
+  left: 15px;
+  padding: 75px 0 0 0;
+  width: 420px;
+  height: 435px;
+  overflow: hidden;
+  cursor: not-allowed;
+}
+
+.grid {
+  position: relative;
+  display: flex;
+  flex-flow: row;
+  width: 420px;
+  height: 360px;
+}
+
+.column {
+  display: flex;
+  flex-flow: column-reverse;
+  justify-content: flex-start;
+  height: 360px;
+
+  &[onclick] {
+    cursor: pointer;
+    background: red !important;
+  }
+}
+
+.disc {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  top: 0;
+  color: var(--player-color, #fff);
+  background: radial-gradient(
+    circle,
+    currentcolor 12px,
+    #666 13px,
+    currentcolor 14px,
+    currentcolor 21px,
+    #666 22px,
+    transparent 23px,
+    transparent
+  )
+  center/60px;
+  pointer-events: none;
+  transition: opacity 0.2s, top 0s 0.2s, color 0s 0.2s,
+              top 0.32s cubic-bezier(0.56, 0, 1, 1);
+  animation: slide-in 0.32s cubic-bezier(0.56, 0, 1, 1);
+
+  &.next {
+    opacity: 0.5;
+    top: calc((var(--row) * -60)  - 15px);
+    transition: opacity 0.2s, top 0s 0.2s, color 0s 0.2s;
+  }
+
+  .column:hover &.next {
+    opacity: 1;
+    top: -375px;
+    transition: opacity 0.2s, top 0s 0.2s, color 0s 0.2s;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    top: calc((var(--row, 12) * -60px)  - 15px);
+  }
+
+  to {
+    top: 0;
+  }
+}

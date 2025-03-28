@@ -1,9 +1,7 @@
-import type {Board} from "./Board";
-
 export interface Player {
   name: string;
   color: string;
-  move: (board: Board) => Promise<number>;
+  move: () => Promise<number>;
 }
 
 export interface Move {
@@ -12,17 +10,21 @@ export interface Move {
 }
 
 export type MovesHistory = Move[];
+export type BoardState = {
+  cols: number;
+  rows: number;
+  grid: Player[][];
+};
 
-export type GameState =
-  | {status: "ready"}
-  | {status: "play"; history: MovesHistory}
-  | {
-      status: "win";
-      history: MovesHistory;
-      winner: Player;
-      discsCoordinates: [number, number][];
-    }
-  | {status: "draw"; history: MovesHistory};
+// Add this to your types.ts file
+export interface GameState {
+  status: "ready" | "play" | "win" | "draw";
+  board: BoardState;
+  history: {col: number; player: Player | null}[];
+  currentPlayer: Player | null;
+  winner?: Player; // Add this property
+  discsCoordinates?: [row: number, col: number][]; // Add this property
+}
 
 export class Connect4Error extends Error {
   constructor(message: string) {
