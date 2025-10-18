@@ -78,8 +78,8 @@ export class ConnectX {
 
         const col = await player.move();
         console.log("Player", player.name, "inserted in column", col);
-        console.log(this.#board.toString());
         this.insert(col);
+        console.log(this.#board.toString());
 
         yield {player, col, gameState: this.getGameState()};
       } catch (error) {

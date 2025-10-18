@@ -2,6 +2,7 @@ import {ConnectX} from "@/engine/ConnectX";
 import {Connect4Error, Player} from "./types";
 
 export class RandomPlayer implements Player {
+  type = "computer" as const;
   #game: ConnectX;
   #color: string;
   name: string;

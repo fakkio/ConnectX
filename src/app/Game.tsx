@@ -20,42 +20,52 @@ export function Game() {
   return (
     <div>
       <h3>React</h3>
-      <pre>{JSON.stringify(gameState, null, 1)}</pre>
       <div className={styles.boardContainer}>
         <div className={styles.board}>
           <div className={styles.field}>
             <div className={styles.grid}>
-              {gameState.board.grid.map((col, c) => (
-                <div
-                  key={c}
-                  className={styles.column}
-                  onClick={
-                    col.length < gameState.board.rows
-                      ? () => handleColumnClick(c)
-                      : undefined
-                  }
-                >
-                  {col.map((cell, r) => (
-                    <div
-                      key={c + "-" + r}
-                      className={styles.disc}
-                      style={
-                        {
-                          "--row": gameState.board.rows - r,
-                          "--player-color": cell.color,
-                        } as CSSProperties
-                      }
-                    />
-                  ))}
-                  {col.length < gameState.board.rows && (
-                    <div
-                      key={c + "-" + col.length}
-                      className={cns(styles.disc, styles.current)}
-                      style={{"--row": col.length} as CSSProperties}
-                    />
-                  )}
-                </div>
-              ))}
+              {gameState.board.grid.map((col, c) => {
+                const isInteractive =
+                  gameState.status === "play" &&
+                  col.length < gameState.board.rows &&
+                  gameState.currentPlayer?.type === "human";
+
+                return (
+                  <div
+                    key={c}
+                    className={styles.column}
+                    onClick={
+                      isInteractive ? () => handleColumnClick(c) : undefined
+                    }
+                    style={{cursor: isInteractive ? "pointer" : "not-allowed"}}
+                  >
+                    {col.map((cell, r) => (
+                      <div
+                        key={c + "-" + r}
+                        className={styles.disc}
+                        style={
+                          {
+                            "--row": gameState.board.rows - r,
+                            "--player-color": cell.color,
+                          } as CSSProperties
+                        }
+                      />
+                    ))}
+                    {isInteractive && (
+                      <div
+                        key={c + "-" + col.length}
+                        className={cns(styles.disc, styles.next)}
+                        style={
+                          {
+                            "--row": gameState.board.rows - col.length,
+                            "--player-color": gameState.currentPlayer?.color,
+                          } as CSSProperties
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className={styles.front}></div>
@@ -64,6 +74,7 @@ export function Game() {
       <button onClick={() => game.start([humanPlayer, randomPlayer])}>
         New Game
       </button>
+      <pre>{JSON.stringify(gameState, null, 1)}</pre>
       {/*      <div style={{display: "flex", flexDirection: "row"}}>
         {gameState.board.grid.map((row, r) => (
           <div

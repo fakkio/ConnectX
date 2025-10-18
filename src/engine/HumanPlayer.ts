@@ -2,6 +2,7 @@ import {ConnectX} from "@/engine/ConnectX";
 import {Player} from "./types";
 
 export class HumanPlayer implements Player {
+  type = "human" as const;
   #game: ConnectX;
   #color: string;
   name: string;
