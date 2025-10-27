@@ -5,7 +5,7 @@ import {OnlyCssBoard} from "@/app/OnlyCssBoard";
 import {useState} from "react";
 
 export default function Home() {
-  const [tab, setTab] = useState<"onlyCss" | "react">("onlyCss");
+  const [tab, setTab] = useState<"onlyCss" | "react">("react");
 
   return (
     <div>

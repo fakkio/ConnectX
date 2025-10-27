@@ -15,7 +15,7 @@ export class ConnectX {
   #players: Player[] = [];
   #board = new Board(this, this.#numCols, this.#numRows);
 
-  getGameState(): GameState {
+  getGameState(): Readonly<GameState> {
     return this.#gameState;
   }
 

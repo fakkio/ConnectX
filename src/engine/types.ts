@@ -1,8 +1,14 @@
+import type {HumanPlayer} from "./HumanPlayer";
+
 export interface Player {
   type: "human" | "computer";
   name: string;
   color: string;
   move: () => Promise<number>;
+}
+
+export function isHumanPlayer(player: Player | null): player is HumanPlayer {
+  return player?.type === "human";
 }
 
 export interface Move {

@@ -86,12 +86,12 @@ export class Board {
       }
     };
 
-    // top-left tot bottom-right
+    // top-left to bottom-right
     let win = checkSeries([1, -1]);
     if (win) {
       return {winner: lastMove.player, discsCoordinates: win};
     }
-    // bottom-left tot top-right
+    // bottom-left to top-right
     win = checkSeries([1, 1]);
     if (win) {
       return {winner: lastMove.player, discsCoordinates: win};

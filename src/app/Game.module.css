@@ -58,6 +58,7 @@
   width: 60px;
   border-right: 1px solid hsl(210, 100%, 40%);
   cursor: pointer;
+  outline: none;
 }
 
 .disc {
@@ -79,7 +80,7 @@
   center/60px;
   pointer-events: none;
   transition: opacity 0.2s, top 0s 0.2s,
-              top 0.32s cubic-bezier(0.56, 0, 1, 1);
+  top 0.32s cubic-bezier(0.56, 0, 1, 1);
   animation: slide-in 0.32s cubic-bezier(0.56, 0, 1, 1);
 
   &.next {
@@ -88,7 +89,8 @@
     animation: none;
   }
 
-  .column:hover &.next {
+  .column:hover &.next,
+  .column:focus-visible &.next {
     opacity: 1;
   }
 }
