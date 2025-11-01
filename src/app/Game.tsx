@@ -22,6 +22,8 @@ export function Game() {
     game.start([humanPlayer, randomPlayer]);
   };
 
+  console.log("render");
+
   return (
     <div>
       <h3>React</h3>
@@ -30,42 +32,43 @@ export function Game() {
         <div className={styles.board}>
           <div className={styles.field}>
             <div className={styles.grid}>
-              {gameState.board.grid.map((col, colIndex) => {
-                const currentPlayer = gameState.currentPlayer;
-                const isInteractive =
-                  gameState.status === "play" &&
-                  col.length < gameState.board.rows &&
-                  isHumanPlayer(currentPlayer);
+              {gameState.status !== "ready" &&
+                gameState.board.grid.map((col, colIndex) => {
+                  const currentPlayer = gameState.currentPlayer;
+                  const isInteractive =
+                    gameState.status === "play" &&
+                    col.length < gameState.board.rows &&
+                    isHumanPlayer(currentPlayer);
 
-                return (
-                  <Column
-                    key={colIndex}
-                    colIndex={colIndex}
-                    isInteractive={isInteractive}
-                    onInsert={
-                      isInteractive
-                        ? () => handleColumnClick(currentPlayer, colIndex)
-                        : undefined
-                    }
-                  >
-                    {col.map((cell, rowIndex) => (
-                      <Disc
-                        key={`${colIndex}-${rowIndex}`}
-                        color={cell.color}
-                        row={gameState.board.rows - rowIndex}
-                      />
-                    ))}
-                    {isInteractive && (
-                      <Disc
-                        key={colIndex + "-" + col.length}
-                        color={gameState.currentPlayer?.color}
-                        isNext
-                        row={gameState.board.rows - col.length}
-                      />
-                    )}
-                  </Column>
-                );
-              })}
+                  return (
+                    <Column
+                      key={colIndex}
+                      colIndex={colIndex}
+                      isInteractive={isInteractive}
+                      onInsert={
+                        isInteractive
+                          ? () => handleColumnClick(currentPlayer, colIndex)
+                          : undefined
+                      }
+                    >
+                      {col.map((cell, rowIndex) => (
+                        <Disc
+                          key={`${colIndex}-${rowIndex}`}
+                          color={cell.color}
+                          row={gameState.board.rows - rowIndex}
+                        />
+                      ))}
+                      {isInteractive && (
+                        <Disc
+                          key={colIndex + "-" + col.length}
+                          color={gameState.currentPlayer?.color}
+                          isNext
+                          row={gameState.board.rows - col.length}
+                        />
+                      )}
+                    </Column>
+                  );
+                })}
             </div>
           </div>
           <div className={styles.front}></div>

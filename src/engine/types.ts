@@ -1,3 +1,4 @@
+import {BoardState} from "@/engine/Board";
 import type {HumanPlayer} from "./HumanPlayer";
 
 export interface Player {
@@ -17,20 +18,36 @@ export interface Move {
 }
 
 export type MovesHistory = Move[];
-export type BoardState = {
-  cols: number;
-  rows: number;
-  grid: Player[][];
-};
 
-export interface GameState {
-  status: "ready" | "play" | "win" | "draw";
-  board: BoardState;
-  history: {col: number; player: Player | null}[];
-  currentPlayer: Player | null;
-  winner?: Player;
-  discsCoordinates?: [row: number, col: number][];
+export interface GameStateReady {
+  status: "ready";
 }
+export interface GameStatePlay {
+  status: "play";
+  board: BoardState;
+  history: MovesHistory;
+  currentPlayer: Player;
+}
+export interface GameStateWin {
+  status: "win";
+  board: BoardState;
+  history: MovesHistory;
+  currentPlayer: Player | null;
+  winner: Player;
+  discsCoordinates: [row: number, col: number][];
+}
+export interface GameStateDraw {
+  status: "draw";
+  board: BoardState;
+  history: MovesHistory;
+  currentPlayer: Player | null;
+}
+
+export type GameState =
+  | GameStateReady
+  | GameStatePlay
+  | GameStateWin
+  | GameStateDraw;
 
 export class Connect4Error extends Error {
   constructor(message: string) {

@@ -20,11 +20,16 @@ export class RandomPlayer implements Player {
   async move() {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
+    if (this.#game.gameState.status !== "play") {
+      throw new Connect4Error("Game is not in play state");
+    }
+
     const availableColumns: number[] = [];
-    for (let col = 0; col < this.#game.getGameState().board.cols; col += 1) {
+
+    for (let col = 0; col < this.#game.gameState.board.cols; col += 1) {
       if (
-        this.#game.getGameState().board.grid[col].length <
-        this.#game.getGameState().board.rows
+        this.#game.gameState.board.grid[col].length <
+        this.#game.gameState.board.rows
       ) {
         availableColumns.push(col);
       }

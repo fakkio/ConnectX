@@ -2,19 +2,17 @@ import {GameState} from "@/engine/types";
 import {useSyncExternalStore} from "react";
 import {ConnectX} from "@/engine/ConnectX";
 
+const serverSnapshot = {
+  status: "ready",
+} satisfies GameState;
+
 export function useGameState(game: ConnectX) {
   const gameState = useSyncExternalStore(
     (callback) => game.subscribe(callback),
 
-    () => game.getGameState(),
+    () => game.gameState,
 
-    () =>
-      ({
-        status: "ready",
-        board: {cols: 7, rows: 6, grid: []},
-        history: [],
-        currentPlayer: null,
-      }) satisfies GameState,
+    () => serverSnapshot,
   );
 
   return gameState;

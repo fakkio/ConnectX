@@ -1,37 +1,65 @@
 import {produce} from "immer";
 import {Board} from "./Board";
-import {Connect4Error, GameState, Player} from "./types";
+import {
+  Connect4Error,
+  GameState,
+  GameStateDraw,
+  GameStatePlay,
+  GameStateWin,
+  Player,
+} from "./types";
 
 export class ConnectX {
   #subscribers: Set<() => void> = new Set();
   #gameState: GameState = {
     status: "ready",
-    board: {cols: 7, rows: 6, grid: []},
-    history: [],
-    currentPlayer: null,
   };
   #numCols = 7;
   #numRows = 6;
   #players: Player[] = [];
-  #board = new Board(this, this.#numCols, this.#numRows);
+  #board: Board = null!;
 
-  getGameState(): Readonly<GameState> {
+  get gameState(): Readonly<GameState> {
     return this.#gameState;
   }
 
-  setGameState(updater: (draft: Omit<GameState, "currentPlayer">) => void) {
-    this.#gameState = produce(this.#gameState, (draft) => {
-      updater(draft);
+  private set gameState(
+    updater: (
+      draft: Omit<GameState, "currentPlayer">,
+    ) => void | Omit<GameState, "currentPlayer">,
+  ) {
+    this.#gameState = produce(
+      this.#gameState,
+      (draft: Omit<GameState, "currentPlayer">) => {
+        const maybeReplacement = updater(draft);
 
-      if (
-        draft.status === "play" ||
-        draft.status === "win" ||
-        draft.status === "draw"
-      ) {
-        const turn = draft.history.length;
-        draft.currentPlayer = this.#players[turn % this.#players.length];
-      }
-    });
+        if (maybeReplacement !== undefined) {
+          if (
+            maybeReplacement.status === "play" ||
+            maybeReplacement.status === "win" ||
+            maybeReplacement.status === "draw"
+          ) {
+            const turn = (maybeReplacement as GameStatePlay).history.length;
+            (maybeReplacement as GameStatePlay).currentPlayer =
+              this.#players[turn % this.#players.length];
+          }
+          return maybeReplacement;
+        }
+
+        if (
+          draft.status === "play" ||
+          draft.status === "win" ||
+          draft.status === "draw"
+        ) {
+          const turn = (draft as GameStatePlay | GameStateWin | GameStateDraw)
+            .history.length;
+          (
+            draft as GameStatePlay | GameStateWin | GameStateDraw
+          ).currentPlayer = this.#players[turn % this.#players.length];
+        }
+      },
+    );
+    this.#notify();
   }
 
   subscribe(callback: () => void) {
@@ -48,29 +76,30 @@ export class ConnectX {
   }
 
   async start(players: Player[]) {
+    console.log(this.#gameState);
     this.#players = players;
-    this.setGameState((draft) => {
-      draft.status = "play";
-      draft.history = [];
-      draft.board = {cols: this.#numCols, rows: this.#numRows, grid: []};
-    });
-    this.#board.init();
-    this.#notify();
+    this.gameState = () => {
+      this.#board = new Board(this.#numCols, this.#numRows);
+      return {
+        status: "play",
+        history: [],
+        players: players,
+        board: this.#board.state,
+      } as Omit<GameState, "currentPlayer">;
+    };
 
     const gameGenerator = this.turnGenerator();
     for await (const turnResult of gameGenerator) {
       console.log(turnResult);
     }
 
-    console.log(this.getGameState());
-    this.#notify();
-    return this.getGameState();
+    return this.#gameState;
   }
 
   async *turnGenerator() {
-    while (this.getGameState().status === "play") {
+    while (this.#gameState.status === "play") {
       try {
-        const player = this.getGameState().currentPlayer;
+        const player = this.#gameState.currentPlayer;
         if (!player) {
           console.error("No player in current game state");
           break; // Exit the loop without throwing
@@ -81,7 +110,7 @@ export class ConnectX {
         this.insert(col);
         console.log(this.#board.toString());
 
-        yield {player, col, gameState: this.getGameState()};
+        yield {player, col, gameState: this.#gameState};
       } catch (error) {
         console.error("Error during move:", error);
         break;
@@ -90,34 +119,37 @@ export class ConnectX {
   }
 
   insert(col: number): GameState {
-    if (this.getGameState().status !== "play") {
+    if (this.#gameState.status !== "play") {
       throw new Connect4Error("Game is already finished");
     }
-    const currentPlayer = this.getGameState().currentPlayer;
+    const currentPlayer = this.#gameState.currentPlayer;
     if (currentPlayer === null) {
       throw new Connect4Error("No player in current game state");
     }
 
     this.#board.insert(col, currentPlayer);
     const move = {col, player: currentPlayer};
-    this.setGameState((state) => {
-      state.history.push(move);
-    });
+    this.gameState = (state) => {
+      (state as GameStatePlay).board = this.#board.state;
+      (state as GameStatePlay).history.push(move);
+    };
 
     const win = this.#board.checkWin(move);
     if (win) {
-      this.setGameState((state) => {
-        state.status = "win";
-        state.winner = win.winner;
-        state.discsCoordinates = win.discsCoordinates;
-      });
+      this.gameState = (state) => {
+        return {
+          ...state,
+          status: "win",
+          winner: win.winner,
+          discsCoordinates: win.discsCoordinates,
+        };
+      };
     } else if (this.#board.isBoardFull()) {
-      this.setGameState((state) => {
+      this.gameState = (state) => {
         state.status = "draw";
-      });
+      };
     }
 
-    this.#notify();
     return this.#gameState;
   }
 }
