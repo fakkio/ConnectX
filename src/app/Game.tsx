@@ -1,25 +1,24 @@
 import {Column} from "@/app/Column";
 import {Disc} from "@/app/Disc";
-import {ConnectX} from "@/engine/ConnectX";
 import {HumanPlayer} from "@/engine/HumanPlayer";
-import {RandomPlayer} from "@/engine/RandomPlayer";
 import {isHumanPlayer} from "@/engine/types";
-import {useGameState} from "@/hooks/useGameState";
+import {useGame} from "@/context/GameContext";
+import {PlayerConfig} from "@/engine/types";
 import styles from "./Game.module.css";
 
-const game = new ConnectX();
-const humanPlayer = new HumanPlayer(game, "1", "#ff010b");
-const randomPlayer = new RandomPlayer(game, "2", "#ffd918");
-
 export function Game() {
-  const gameState = useGameState(game);
+  const {gameState, start} = useGame();
 
   const handleColumnClick = (player: HumanPlayer, col: number) => {
     player.handleColumnClick(col);
   };
 
   const handleNewGame = () => {
-    game.start([humanPlayer, randomPlayer]);
+    const configs: PlayerConfig[] = [
+      {type: "human", name: "1", color: "#ff010b"},
+      {type: "random", name: "2", color: "#ffd918"},
+    ];
+    start(configs);
   };
 
   console.log("render");

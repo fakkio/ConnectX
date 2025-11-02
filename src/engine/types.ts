@@ -49,6 +49,12 @@ export type GameState =
   | GameStateWin
   | GameStateDraw;
 
+export type PlayerConfig = {
+  type: "human" | "random";
+  name: string;
+  color: string;
+};
+
 export class Connect4Error extends Error {
   constructor(message: string) {
     super(message);

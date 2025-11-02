@@ -1,6 +1,7 @@
 import type {Metadata} from "next";
 import "./globals.css";
 import {ReactNode} from "react";
+import {GameProvider} from "@/context/GameContext";
 
 export const metadata: Metadata = {
   title: "Intelligent Connect Four",
@@ -14,7 +15,9 @@ interface RootLayoutProps {
 export default function RootLayout({children}: RootLayoutProps) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <GameProvider>{children}</GameProvider>
+      </body>
     </html>
   );
 }
