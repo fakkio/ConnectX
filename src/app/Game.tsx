@@ -3,7 +3,7 @@ import {Disc} from "@/app/Disc";
 import {HumanPlayer} from "@/engine/HumanPlayer";
 import {isHumanPlayer} from "@/engine/types";
 import {useGame} from "@/context/GameContext";
-import {PlayerConfig} from "@/engine/types";
+import {PlayerConfig} from "@/context/GameContext";
 import styles from "./Game.module.css";
 
 export function Game() {

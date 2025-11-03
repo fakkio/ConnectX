@@ -1,16 +1,25 @@
+import type {PlayerConfigBase} from "./types";
 import {ConnectX} from "@/engine/ConnectX";
 import {Connect4Error, Player} from "./types";
+
+// Config interface local to RandomPlayer module
+export interface RandomPlayerConfig extends PlayerConfigBase {
+  type: "random";
+  delayMs?: number;
+}
 
 export class RandomPlayer implements Player {
   type = "computer" as const;
   #game: ConnectX;
   #color: string;
   name: string;
+  #delayMs: number;
 
-  constructor(game: ConnectX, name: string, color: string) {
+  constructor(game: ConnectX, config: RandomPlayerConfig) {
     this.#game = game;
-    this.name = name;
-    this.#color = color;
+    this.name = config.name;
+    this.#color = config.color;
+    this.#delayMs = config?.delayMs ?? 300;
   }
 
   get color() {
@@ -18,7 +27,7 @@ export class RandomPlayer implements Player {
   }
 
   async move() {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, this.#delayMs));
 
     if (this.#game.gameState.status !== "play") {
       throw new Connect4Error("Game is not in play state");

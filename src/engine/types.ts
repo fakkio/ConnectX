@@ -49,11 +49,12 @@ export type GameState =
   | GameStateWin
   | GameStateDraw;
 
-export type PlayerConfig = {
-  type: "human" | "random";
+// Base interface for player configs — players should define their own specific config types in their modules
+export interface PlayerConfigBase {
+  type: string;
   name: string;
   color: string;
-};
+}
 
 export class Connect4Error extends Error {
   constructor(message: string) {

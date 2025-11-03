@@ -1,9 +1,13 @@
 "use client";
 
 import {ConnectX} from "@/engine/ConnectX";
-import {HumanPlayer} from "@/engine/HumanPlayer";
-import {RandomPlayer} from "@/engine/RandomPlayer";
-import {GameState, GameStateReady, Player, PlayerConfig} from "@/engine/types";
+import {HumanPlayer, HumanPlayerConfig} from "@/engine/HumanPlayer";
+import {
+  MonteCarloTreeSearchPlayer,
+  MonteCarloPlayerConfig,
+} from "@/engine/MonteCarloTreeSearchPlayer";
+import {RandomPlayer, RandomPlayerConfig} from "@/engine/RandomPlayer";
+import {GameState, GameStateReady, Player} from "@/engine/types";
 import {
   createContext,
   PropsWithChildren,
@@ -11,6 +15,12 @@ import {
   useMemo,
   useSyncExternalStore,
 } from "react";
+
+// Recreate PlayerConfig union locally using imported player-specific configs
+export type PlayerConfig =
+  | HumanPlayerConfig
+  | RandomPlayerConfig
+  | MonteCarloPlayerConfig;
 
 type GameContextValue = {
   game: ConnectX;
@@ -21,11 +31,23 @@ type GameContextValue = {
 const GameContext = createContext<GameContextValue | undefined>(undefined);
 const game = new ConnectX();
 const serverSnapshot = {status: "ready"} as GameStateReady;
+
 const start = (playerConfigs: PlayerConfig[]) => {
-  const players: Player[] = playerConfigs.map(({type, name, color}) => {
-    if (type === "human") return new HumanPlayer(game, name, color);
-    else if (type === "random") return new RandomPlayer(game, name, color);
-    else throw new Error(`Unknown player type: ${type}`);
+  const players: Player[] = playerConfigs.map((cfg) => {
+    if (cfg.type === "human") {
+      return new HumanPlayer(game, cfg as HumanPlayerConfig);
+    }
+    if (cfg.type === "random") {
+      return new RandomPlayer(game, cfg as RandomPlayerConfig);
+    }
+    if (cfg.type === "monte-carlo") {
+      return new MonteCarloTreeSearchPlayer(
+        game,
+        cfg as MonteCarloPlayerConfig,
+      );
+    }
+
+    throw new Error(`Unknown player config: ${JSON.stringify(cfg)}`);
   });
   void game.start(players);
 };
