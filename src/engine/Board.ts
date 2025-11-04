@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import {produce} from "immer";
 import {Connect4Error, Move, Player} from "./types";
 
@@ -21,14 +22,19 @@ export class Board {
     });
   }
 
-  constructor(numCols: number, numRows: number) {
+  constructor(
+    numCols: number,
+    numRows: number,
+    _initGrid?: BoardState["grid"],
+  ) {
     this.#numRows = numRows;
     this.#numCols = numCols;
 
-    const initGrid: Player[][] = [];
-    for (let c = 0; c < this.#numCols; c += 1) {
-      initGrid[c] = [];
-    }
+    const initGrid: Player[][] = _initGrid
+      ? Array.from({length: this.#numCols}, (_, c) => {
+          return _initGrid[c].slice();
+        })
+      : Array.from({length: this.#numCols}, () => []);
 
     this.#state = {cols: numCols, rows: numRows, grid: initGrid};
   }
@@ -51,7 +57,25 @@ export class Board {
     return fullGrid;
   }
 
-  insert(col: number, player: Player) {
+  canInsert(col: number): boolean {
+    if (col < 0 || col >= this.#numCols || col !== Math.floor(col)) {
+      throw new Connect4Error(`Invalid column index ${col}`);
+    }
+
+    return this.state.grid[col].length < this.#numRows;
+  }
+
+  availableColumns(): number[] {
+    const availableCols: number[] = [];
+    for (let col = 0; col < this.#numCols; col++) {
+      if (this.canInsert(col)) {
+        availableCols.push(col);
+      }
+    }
+    return availableCols;
+  }
+
+  insert(col: number, player: Player): Move {
     if (col < 0 || col >= this.#numCols || col !== Math.floor(col)) {
       throw new Connect4Error(`Invalid column index ${col}`);
     }
@@ -63,7 +87,22 @@ export class Board {
     this.state = (state) => {
       state.grid[col].push(player);
     };
-    console.log("insert", this.state.grid);
+
+    return {col, player};
+  }
+
+  remove(col: number) {
+    if (col < 0 || col >= this.#numCols || col !== Math.floor(col)) {
+      throw new Connect4Error(`Invalid column index ${col}`);
+    }
+
+    if (this.state.grid[col].length === 0) {
+      throw new Connect4Error(`Column ${col} is empty`);
+    }
+
+    this.state = (state) => {
+      state.grid[col].pop();
+    };
   }
 
   checkWin(

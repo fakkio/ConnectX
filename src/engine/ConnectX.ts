@@ -62,6 +62,10 @@ export class ConnectX {
     this.#notify();
   }
 
+  get players(): Readonly<Player[]> {
+    return this.#players;
+  }
+
   subscribe(callback: () => void) {
     this.#subscribers.add(callback);
     return () => {
@@ -118,6 +122,10 @@ export class ConnectX {
     }
   }
 
+  availableColumns(): number[] {
+    return this.#board.availableColumns();
+  }
+
   insert(col: number): GameState {
     if (this.#gameState.status !== "play") {
       throw new Connect4Error("Game is already finished");
@@ -127,8 +135,7 @@ export class ConnectX {
       throw new Connect4Error("No player in current game state");
     }
 
-    this.#board.insert(col, currentPlayer);
-    const move = {col, player: currentPlayer};
+    const move = this.#board.insert(col, currentPlayer);
     this.gameState = (state) => {
       (state as GameStatePlay).board = this.#board.state;
       (state as GameStatePlay).history.push(move);

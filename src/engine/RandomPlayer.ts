@@ -33,16 +33,7 @@ export class RandomPlayer implements Player {
       throw new Connect4Error("Game is not in play state");
     }
 
-    const availableColumns: number[] = [];
-
-    for (let col = 0; col < this.#game.gameState.board.cols; col += 1) {
-      if (
-        this.#game.gameState.board.grid[col].length <
-        this.#game.gameState.board.rows
-      ) {
-        availableColumns.push(col);
-      }
-    }
+    const availableColumns = this.#game.availableColumns();
 
     // Return random available column
     if (availableColumns.length > 0) {

@@ -16,7 +16,7 @@ export function Game() {
   const handleNewGame = () => {
     const configs: PlayerConfig[] = [
       {type: "human", name: "1", color: "#ff010b"},
-      {type: "random", name: "2", color: "#ffd918"},
+      {type: "monte-carlo", name: "2", color: "#ffd918"},
     ];
     start(configs);
   };
