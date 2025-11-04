@@ -120,17 +120,42 @@ export class Board {
     return this.state.grid.every((column) => column.length === this.#numRows);
   }
 
-  toString() {
+  toConsole(colorMode: boolean = true, lastMove?: Move): string {
+    const maxNameLength = Math.max(
+      ...this.state.grid.flat().map((player) => player.name.length),
+    );
+    const discsCoordinates = lastMove
+      ? this.checkWin(lastMove)?.discsCoordinates
+      : null;
+
     const asciiGrid = Array.from({length: this.#numRows}, () =>
-      Array(this.#numCols).fill("."),
+      Array(this.#numCols),
     );
     for (let c = 0; c < this.#numCols; c += 1) {
       for (let r = 0; r < this.#numRows; r += 1) {
+        const colorFunc = (color: string) => {
+          if (!colorMode) {
+            return (text: string) => text;
+          } else if (
+            discsCoordinates?.some(([col, row]) => col === c && row === r)
+          ) {
+            return chalk.bgHex(color).black;
+          } else {
+            return chalk.hex(color);
+          }
+        };
+
         asciiGrid[this.#numRows - r - 1][c] = this.state.grid[c][r]
-          ? this.state.grid[c][r].name
-          : ".";
+          ? colorFunc(this.state.grid[c][r].color)(
+              this.state.grid[c][r].name.padEnd(maxNameLength, " "),
+            )
+          : ".".repeat(maxNameLength);
       }
     }
     return asciiGrid.map((row) => row.join(" ")).join("\n");
+  }
+
+  toString() {
+    return this.toConsole(false);
   }
 }
