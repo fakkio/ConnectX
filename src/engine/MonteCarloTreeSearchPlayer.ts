@@ -1,7 +1,8 @@
 import {Board} from "@/engine/Board";
 import {ConnectX} from "@/engine/ConnectX";
 import {Tree} from "@/engine/Tree";
-import type {Move, PlayerConfigBase} from "./types";
+import {runTimeSliced} from "@/helpers/timeSlicer";
+import type {GameStatePlay, Move, PlayerConfigBase} from "./types";
 import {Connect4Error, Player} from "./types";
 
 // Config interface local to MonteCarloTreeSearchPlayer module
@@ -61,11 +62,14 @@ export class MonteCarloTreeSearchPlayer implements Player {
     const pickRandom = <T>(arr: T[]) =>
       arr[Math.floor(Math.random() * arr.length)];
 
-    while (Date.now() < endTime) {
+    const gameStatePlay = this.#game.gameState as GameStatePlay;
+    const initialBoardState = gameStatePlay.board;
+
+    const iterate = async () => {
       const board = new Board(
-        this.#game.gameState.board.cols,
-        this.#game.gameState.board.rows,
-        this.#game.gameState.board.grid,
+        initialBoardState.cols,
+        initialBoardState.rows,
+        initialBoardState.grid,
       );
 
       let currentNode = searchTree;
@@ -111,7 +115,9 @@ export class MonteCarloTreeSearchPlayer implements Player {
         }
         currentNode = currentNode.parent;
       }
-    }
+    };
+
+    await runTimeSliced(iterate, this.#timeLimitMS);
 
     const rootChildren = searchTree.children;
 
@@ -141,6 +147,6 @@ export class MonteCarloTreeSearchPlayer implements Player {
       return Math.random() < 0.5 ? child : best;
     });
 
-    return bestChild.data.lastCol;
+    return bestChild.data.lastCol!;
   }
 }
