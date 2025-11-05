@@ -8,7 +8,6 @@ import {Connect4Error, Player} from "./types";
 export interface MonteCarloPlayerConfig extends PlayerConfigBase {
   type: "monte-carlo";
   timeLimitMS?: number;
-  simulations?: number;
 }
 
 export class MonteCarloTreeSearchPlayer implements Player {
@@ -30,8 +29,6 @@ export class MonteCarloTreeSearchPlayer implements Player {
   }
 
   async move() {
-    const endTime = Date.now() + this.#timeLimitMS;
-
     if (this.#game.gameState.status !== "play") {
       throw new Connect4Error("Game is not in play state");
     }
@@ -42,37 +39,58 @@ export class MonteCarloTreeSearchPlayer implements Player {
       played: number;
       wins: number;
     }
-    const searchTree = new Tree<NodeData>({
+
+    const rootData: NodeData = {
       lastCol: null,
       lastPlayer: null,
       played: 0,
       wins: 0,
-    }) as Readonly<Tree<NodeData>>;
+    };
+
+    const searchTree = new Tree<NodeData>(rootData) as Readonly<Tree<NodeData>>;
     const players = this.#game.players;
 
+    const selfIndex = players.findIndex((p) => p === this);
+    if (selfIndex === -1) {
+      throw new Connect4Error("Player not found in game players array");
+    }
+
+    const startTime = Date.now();
+    const endTime = startTime + this.#timeLimitMS;
+
+    const pickRandom = <T>(arr: T[]) =>
+      arr[Math.floor(Math.random() * arr.length)];
+
     while (Date.now() < endTime) {
-      let randomMove: Move;
-      let playerIndex = players.findIndex((p) => p === this);
       const board = new Board(
         this.#game.gameState.board.cols,
         this.#game.gameState.board.rows,
         this.#game.gameState.board.grid,
       );
+
       let currentNode = searchTree;
+      let playerIndex = selfIndex;
+      let lastMove: Move | null = null;
+      let winResult: {
+        winner: Player;
+        discsCoordinates: [number, number][];
+      } | null = null;
 
       do {
         const availableCols = board.availableColumns();
-        const randomCol =
-          availableCols[Math.floor(Math.random() * availableCols.length)];
 
-        randomMove = board.insert(randomCol, players[playerIndex]);
+        const randomCol = pickRandom(availableCols);
+        lastMove = board.insert(randomCol, players[playerIndex]);
+
+        const existingChild = currentNode.children.find(({data}) => {
+          return (
+            data.lastCol === randomCol &&
+            data.lastPlayer === players[playerIndex]
+          );
+        });
+
         const treeNode =
-          currentNode.children.find(({data}) => {
-            return (
-              data.lastCol === randomCol &&
-              data.lastPlayer === players[playerIndex]
-            );
-          }) ??
+          existingChild ??
           currentNode.addChild({
             lastCol: randomCol,
             lastPlayer: players[playerIndex],
@@ -81,26 +99,48 @@ export class MonteCarloTreeSearchPlayer implements Player {
           });
 
         currentNode = treeNode;
+
+        winResult = board.checkWin(lastMove);
         playerIndex = (playerIndex + 1) % players.length;
-      } while (!board.isBoardFull() && !board.checkWin(randomMove));
+      } while (!board.isBoardFull() && !winResult);
 
       while (currentNode.parent) {
         currentNode.data.played += 1;
-        if (
-          board.checkWin(randomMove)?.winner === currentNode.data.lastPlayer
-        ) {
+        if (winResult?.winner === currentNode.data.lastPlayer) {
           currentNode.data.wins += 1;
         }
         currentNode = currentNode.parent;
       }
     }
 
-    const bestCol = searchTree.children.reduce((best, child) => {
-      const childWinRate = child.data.wins / child.data.played;
-      const bestWinRate = best.data.wins / best.data.played;
+    const rootChildren = searchTree.children;
 
-      return childWinRate > bestWinRate ? child : best;
+    const bestChild = rootChildren.reduce((best, child) => {
+      const childPlayed = child.data.played;
+      const bestPlayed = best.data.played;
+
+      const childWinRate = childPlayed > 0 ? child.data.wins / childPlayed : 0;
+      const bestWinRate = bestPlayed > 0 ? best.data.wins / bestPlayed : 0;
+
+      if (childWinRate > bestWinRate) {
+        return child;
+      }
+      if (childWinRate < bestWinRate) {
+        return best;
+      }
+
+      // Tie-breaker: prefer the one with more simulations (played)
+      if (childPlayed > bestPlayed) {
+        return child;
+      }
+      if (childPlayed < bestPlayed) {
+        return best;
+      }
+
+      // Final tie-breaker: random
+      return Math.random() < 0.5 ? child : best;
     });
-    return bestCol.data.lastCol!;
+
+    return bestChild.data.lastCol;
   }
 }
