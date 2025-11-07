@@ -1,3 +1,4 @@
+import {debugLog} from "@/helpers/debugLog";
 import {produce} from "immer";
 import {Board} from "./Board";
 import {
@@ -80,7 +81,6 @@ export class ConnectX {
   }
 
   async start(players: Player[]) {
-    console.log(this.#gameState);
     this.#players = players;
     this.gameState = () => {
       this.#board = new Board(this.#numCols, this.#numRows);
@@ -94,7 +94,6 @@ export class ConnectX {
 
     const gameGenerator = this.turnGenerator();
     for await (const turnResult of gameGenerator) {
-      console.log(turnResult);
     }
 
     return this.#gameState;
@@ -110,9 +109,9 @@ export class ConnectX {
         }
 
         const col = await player.move();
-        console.log("Player", player.name, "inserted in column", col);
+        debugLog("Player", player.name, "inserted in column", col);
         this.insert(col);
-        console.log(this.#board.toString());
+        debugLog(this.#board.toConsole());
 
         yield {player, col, gameState: this.#gameState};
       } catch (error) {

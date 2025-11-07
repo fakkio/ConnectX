@@ -1,7 +1,9 @@
 import {Board} from "@/engine/Board";
 import {ConnectX} from "@/engine/ConnectX";
 import {Tree} from "@/engine/Tree";
+import {debugLog} from "@/helpers/debugLog";
 import {runTimeSliced} from "@/helpers/timeSlicer";
+import chalk from "chalk";
 import type {GameStatePlay, Move, PlayerConfigBase} from "./types";
 import {Connect4Error, Player} from "./types";
 
@@ -30,6 +32,9 @@ export class MonteCarloTreeSearchPlayer implements Player {
   }
 
   async move() {
+    const startTime = Date.now();
+    let iterations = 0;
+
     if (this.#game.gameState.status !== "play") {
       throw new Connect4Error("Game is not in play state");
     }
@@ -56,9 +61,6 @@ export class MonteCarloTreeSearchPlayer implements Player {
       throw new Connect4Error("Player not found in game players array");
     }
 
-    const startTime = Date.now();
-    const endTime = startTime + this.#timeLimitMS;
-
     const pickRandom = <T>(arr: T[]) =>
       arr[Math.floor(Math.random() * arr.length)];
 
@@ -66,6 +68,8 @@ export class MonteCarloTreeSearchPlayer implements Player {
     const initialBoardState = gameStatePlay.board;
 
     const iterate = async () => {
+      iterations += 1;
+
       const board = new Board(
         initialBoardState.cols,
         initialBoardState.rows,
@@ -146,6 +150,30 @@ export class MonteCarloTreeSearchPlayer implements Player {
       // Final tie-breaker: random
       return Math.random() < 0.5 ? child : best;
     });
+
+    debugLog(
+      Array(this.#game.gameState.board.cols)
+        .fill("")
+        .map((_, index) => {
+          const nthChild = rootChildren.find(
+            (child) => child.data.lastCol === index,
+          );
+          if (!nthChild) {
+            return "---";
+          }
+
+          const score = nthChild.data.wins / nthChild.data.played;
+          const bestScore = bestChild.data.wins / bestChild.data.played;
+
+          return score === bestScore
+            ? chalk.underline(score.toFixed(2))
+            : score.toFixed(2);
+        })
+        .join(" "),
+    );
+    debugLog(
+      `Computed ${iterations} iterations in ${Date.now() - startTime} ms`,
+    );
 
     return bestChild.data.lastCol!;
   }

@@ -20,8 +20,6 @@ export function Game() {
     start(configs);
   };
 
-  console.log("render");
-
   return (
     <div>
       <h3>React</h3>
