@@ -1,36 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Connect X (TypeScript + React)
 
-## Getting Started
+An implementation of the classic **Connect Four** game built with **TypeScript** and **React**.
+This project was born from my desire to experiment with advanced **JavaScript** concepts (such as *async generators*), modern **React** patterns (like `useSyncExternalStore`), and various **algorithms** and **data structures** — including **Monte Carlo Tree Search**, **neural networks**, **minimax with alpha-beta pruning**, **trees**, and **graphs**.
 
-First, run the development server:
+## Opponents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Monte Carlo Tree Search (MCTS)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The opponent plays random simulated games while keeping track of how often each move leads to a win.
+When the allocated time runs out, the opponent selects the move that resulted in the highest number of victories.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### Future Improvements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Implement the UCT (Upper Confidence Bound for Trees) algorithm to balance exploration and exploitation during move selection.
+- Reuse the search tree across turns to improve efficiency.
+- Switch to a graph-based version to allow node sharing across multiple game paths.
