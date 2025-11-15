@@ -1,19 +1,15 @@
 "use client";
 
 import {Game} from "@/app/Game";
-import {OnlyCssBoard} from "@/app/OnlyCssBoard";
-import {useState} from "react";
+import {useGame} from "@/context/GameContext";
+import {Intro} from "./Intro";
 
 export default function Home() {
-  const [tab, setTab] = useState<"onlyCss" | "react">("react");
+  const {gameState} = useGame();
 
-  return (
-    <div>
-      <h1>Connect 4</h1>
-      <button onClick={() => setTab("onlyCss")}>Only CSS</button>
-      <button onClick={() => setTab("react")}>React</button>
-      {tab === "onlyCss" && <OnlyCssBoard />}
-      {tab === "react" && <Game />}
-    </div>
-  );
+  if (gameState.status === "ready") {
+    return <Intro />;
+  }
+
+  return <Game />;
 }

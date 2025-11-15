@@ -1,3 +1,12 @@
+.gameWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .boardContainer {
   display: flex;
   justify-content: center;
@@ -6,8 +15,8 @@
 
 .board {
   position: relative;
-  width: 450px;
-  height: 450px;
+  width: calc(var(--cols) * 60px + 30px);
+  height: calc(var(--rows) * 60px + 90px);
 }
 
 .front {
@@ -15,20 +24,20 @@
   top: 60px;
   border: 15px solid hsl(210, 100%, 50%);
   border-radius: 4px;
-  width: 450px;
-  height: 390px;
+  width: calc(var(--cols) * 60px + 30px);
+  height: calc(var(--rows) * 60px + 30px);
   pointer-events: none;
   background: radial-gradient(
-    circle,
-    transparent,
-    transparent 18px,
-    hsl(210, 100%, 50%) 20px,
-    hsl(210, 100%, 50%) 23px,
-    hsl(210, 100%, 56%) 23px,
-    hsl(210, 100%, 56%) 36px,
-    hsl(210, 100%, 50%)
-  )
-  center top/60px 60px;
+      circle,
+      transparent,
+      transparent 18px,
+      hsl(210, 100%, 50%) 20px,
+      hsl(210, 100%, 50%) 23px,
+      hsl(210, 100%, 56%) 23px,
+      hsl(210, 100%, 56%) 36px,
+      hsl(210, 100%, 50%)
+    )
+    left top/60px 60px;
 }
 
 .field {
@@ -36,8 +45,8 @@
   top: 0;
   left: 15px;
   padding: 75px 0 0 0;
-  width: 420px;
-  height: 435px;
+  width: calc(var(--cols) * 60px);
+  height: calc(var(--rows) * 60px + 75px);
   overflow: hidden;
   cursor: not-allowed;
 }
@@ -46,15 +55,15 @@
   position: relative;
   display: flex;
   flex-flow: row;
-  width: 420px;
-  height: 360px;
+  width: calc(var(--cols) * 60px + 60px);
+  height: calc(var(--rows) * 60px + 60px);
 }
 
 .column {
   display: flex;
   flex-flow: column-reverse;
   justify-content: flex-start;
-  height: 360px;
+  height: calc(var(--rows) * 60px);
   width: 60px;
   border-right: 1px solid hsl(210, 100%, 40%);
   cursor: pointer;
@@ -68,24 +77,26 @@
   top: 0;
   color: var(--player-color, #fff);
   background: radial-gradient(
-    circle,
-    currentcolor 12px,
-    #666 13px,
-    currentcolor 14px,
-    currentcolor 21px,
-    #666 22px,
-    transparent 23px,
-    transparent
-  )
-  center/60px;
+      circle,
+      currentcolor 12px,
+      #666 13px,
+      currentcolor 14px,
+      currentcolor 21px,
+      #666 22px,
+      transparent 23px,
+      transparent
+    )
+    center/60px;
   pointer-events: none;
-  transition: opacity 0.2s, top 0s 0.2s,
-  top 0.32s cubic-bezier(0.56, 0, 1, 1);
+  transition:
+    opacity 0.2s,
+    top 0s 0.2s,
+    top 0.32s cubic-bezier(0.56, 0, 1, 1);
   animation: slide-in 0.32s cubic-bezier(0.56, 0, 1, 1);
 
   &.next {
     opacity: 0;
-    top: calc((var(--row) * -60px)  - 15px);
+    top: calc((var(--row) * -60px) - 15px);
     animation: none;
   }
 
@@ -93,14 +104,27 @@
   .column:focus-visible &.next {
     opacity: 1;
   }
+
+  &.winner {
+    animation-name: victory;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+  }
 }
 
 @keyframes slide-in {
   from {
-    top: calc((var(--row, 12) * -60px)  - 15px);
+    top: calc((var(--row, 12) * -60px) - 15px);
   }
 
   to {
     top: 0;
+  }
+}
+
+@keyframes victory {
+  50% {
+    opacity: 0.2;
   }
 }

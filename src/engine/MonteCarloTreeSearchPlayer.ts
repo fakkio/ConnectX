@@ -14,7 +14,7 @@ export interface MonteCarloPlayerConfig extends PlayerConfigBase {
 }
 
 export class MonteCarloTreeSearchPlayer implements Player {
-  type = "computer" as const;
+  type = "monte-carlo" as const;
   #game: ConnectX;
   #color: string;
   name: string;

@@ -9,7 +9,7 @@ export interface RandomPlayerConfig extends PlayerConfigBase {
 }
 
 export class RandomPlayer implements Player {
-  type = "computer" as const;
+  type = "random" as const;
   #game: ConnectX;
   #color: string;
   name: string;

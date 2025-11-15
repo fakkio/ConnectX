@@ -1,0 +1,14 @@
+.introWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.form {
+  display: flex;
+  gap: 1rem;
+  width: 700px;
+}

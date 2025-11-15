@@ -5,12 +5,17 @@ import {CSSProperties} from "react";
 interface DiscProps {
   color: CSSProperties["color"];
   isNext?: boolean;
+  isWinner?: boolean;
   row: number;
 }
-export function Disc({color, isNext, row}: DiscProps) {
+export function Disc({color, isNext, isWinner, row}: DiscProps) {
   return (
     <div
-      className={cns(styles.disc, isNext && styles.next)}
+      className={cns(
+        styles.disc,
+        isNext && styles.next,
+        isWinner && styles.winner,
+      )}
       style={
         {
           "--row": row,

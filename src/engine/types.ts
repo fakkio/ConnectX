@@ -2,7 +2,7 @@ import {BoardState} from "@/engine/Board";
 import type {HumanPlayer} from "./HumanPlayer";
 
 export interface Player {
-  type: "human" | "computer";
+  type: string;
   name: string;
   color: string;
   move: () => Promise<number>;
@@ -51,7 +51,6 @@ export type GameState =
 
 // Base interface for player configs — players should define their own specific config types in their modules
 export interface PlayerConfigBase {
-  type: string;
   name: string;
   color: string;
 }
