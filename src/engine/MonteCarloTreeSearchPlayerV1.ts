@@ -2,18 +2,18 @@ import {Board} from "@/engine/Board";
 import {ConnectX} from "@/engine/ConnectX";
 import {Tree} from "@/engine/Tree";
 import {debugLog} from "@/helpers/debugLog";
+import {pickRandomElement} from "@/helpers/pickRandomElement";
 import {runTimeSliced} from "@/helpers/timeSlicer";
 import chalk from "chalk";
 import type {GameStatePlay, Move, PlayerConfigBase} from "./types";
 import {Connect4Error, Player} from "./types";
 
-// Config interface local to MonteCarloTreeSearchPlayer module
 export interface MonteCarloPlayerConfig extends PlayerConfigBase {
   type: "monte-carlo";
   timeLimitMS?: number;
 }
 
-export class MonteCarloTreeSearchPlayer implements Player {
+export class MonteCarloTreeSearchPlayerV1 implements Player {
   type = "monte-carlo" as const;
   #game: ConnectX;
   #color: string;
@@ -61,20 +61,13 @@ export class MonteCarloTreeSearchPlayer implements Player {
       throw new Connect4Error("Player not found in game players array");
     }
 
-    const pickRandom = <T>(arr: T[]) =>
-      arr[Math.floor(Math.random() * arr.length)];
-
     const gameStatePlay = this.#game.gameState as GameStatePlay;
     const initialBoardState = gameStatePlay.board;
 
     const iterate = async () => {
       iterations += 1;
 
-      const board = new Board(
-        initialBoardState.cols,
-        initialBoardState.rows,
-        initialBoardState.grid,
-      );
+      const board = Board.fromState(initialBoardState);
 
       let currentNode = searchTree;
       let playerIndex = selfIndex;
@@ -87,7 +80,7 @@ export class MonteCarloTreeSearchPlayer implements Player {
       do {
         const availableCols = board.availableColumns();
 
-        const randomCol = pickRandom(availableCols);
+        const randomCol = pickRandomElement(availableCols);
         lastMove = board.insert(randomCol, players[playerIndex]);
 
         const existingChild = currentNode.children.find(({data}) => {
@@ -97,7 +90,7 @@ export class MonteCarloTreeSearchPlayer implements Player {
           );
         });
 
-        const treeNode =
+        currentNode =
           existingChild ??
           currentNode.addChild({
             lastCol: randomCol,
@@ -105,8 +98,6 @@ export class MonteCarloTreeSearchPlayer implements Player {
             played: 0,
             wins: 0,
           });
-
-        currentNode = treeNode;
 
         winResult = board.checkWin(lastMove);
         playerIndex = (playerIndex + 1) % players.length;

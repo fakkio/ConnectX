@@ -3,9 +3,13 @@
 import {ConnectX} from "@/engine/ConnectX";
 import {HumanPlayer, HumanPlayerConfig} from "@/engine/HumanPlayer";
 import {
-  MonteCarloTreeSearchPlayer,
+  MonteCarloTreeSearchPlayerV1,
   MonteCarloPlayerConfig,
-} from "@/engine/MonteCarloTreeSearchPlayer";
+} from "@/engine/MonteCarloTreeSearchPlayerV1";
+import {
+  MonteCarloTreeSearchPlayerV2,
+  MonteCarloUCTPlayerConfig,
+} from "@/engine/MonteCarloTreeSearchPlayerV2";
 import {RandomPlayer, RandomPlayerConfig} from "@/engine/RandomPlayer";
 import {GameState, GameStateReady, Player} from "@/engine/types";
 import {
@@ -20,7 +24,8 @@ import {
 export type PlayerConfig =
   | HumanPlayerConfig
   | RandomPlayerConfig
-  | MonteCarloPlayerConfig;
+  | MonteCarloPlayerConfig
+  | MonteCarloUCTPlayerConfig;
 
 type GameContextValue = {
   game: ConnectX;
@@ -41,9 +46,15 @@ const start = (playerConfigs: PlayerConfig[]) => {
       return new RandomPlayer(game, cfg as RandomPlayerConfig);
     }
     if (cfg.type === "monte-carlo") {
-      return new MonteCarloTreeSearchPlayer(
+      return new MonteCarloTreeSearchPlayerV1(
         game,
         cfg as MonteCarloPlayerConfig,
+      );
+    }
+    if (cfg.type === "monte-carlo-uct") {
+      return new MonteCarloTreeSearchPlayerV2(
+        game,
+        cfg as MonteCarloUCTPlayerConfig,
       );
     }
 

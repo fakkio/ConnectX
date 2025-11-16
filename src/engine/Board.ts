@@ -13,6 +13,27 @@ export class Board {
   readonly #numRows: number;
   #state: BoardState;
 
+  static fromState(state: BoardState): Board {
+    const board = new Board(state.cols, state.rows);
+
+    const initGrid: Player[][] = Array.from({length: state.cols}, (_, c) => {
+      return state.grid[c].slice();
+    });
+
+    board.#state = {cols: state.cols, rows: state.rows, grid: initGrid};
+
+    return board;
+  }
+
+  constructor(numCols: number, numRows: number) {
+    this.#numRows = numRows;
+    this.#numCols = numCols;
+
+    const initGrid: Player[][] = Array.from({length: this.#numCols}, () => []);
+
+    this.#state = {cols: numCols, rows: numRows, grid: initGrid};
+  }
+
   get state(): Readonly<BoardState> {
     return this.#state;
   }
@@ -20,23 +41,6 @@ export class Board {
     this.#state = produce(this.#state, (draft) => {
       updater(draft);
     });
-  }
-
-  constructor(
-    numCols: number,
-    numRows: number,
-    _initGrid?: BoardState["grid"],
-  ) {
-    this.#numRows = numRows;
-    this.#numCols = numCols;
-
-    const initGrid: Player[][] = _initGrid
-      ? Array.from({length: this.#numCols}, (_, c) => {
-          return _initGrid[c].slice();
-        })
-      : Array.from({length: this.#numCols}, () => []);
-
-    this.#state = {cols: numCols, rows: numRows, grid: initGrid};
   }
 
   /**

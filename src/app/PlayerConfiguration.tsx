@@ -26,6 +26,13 @@ const AVAILABLE_COLORS = [
   {name: "Orange", value: "#f97316"},
 ];
 
+const AVAILABLE_PLAYER_TYPES = [
+  {value: "human", label: "Human"},
+  {value: "random", label: "Random"},
+  {value: "monte-carlo", label: "Monte Carlo"},
+  {value: "monte-carlo-uct", label: "Monte Carlo UCT"},
+] as const;
+
 interface PlayerConfigurationProps {
   control: UseFormReturn<FormValues>["control"];
   label: string;
@@ -58,9 +65,11 @@ export function PlayerConfiguration({
                   <SelectValue placeholder="Player type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="human">Human</SelectItem>
-                  <SelectItem value="random">Random</SelectItem>
-                  <SelectItem value="monte-carlo">Monte Carlo</SelectItem>
+                  {AVAILABLE_PLAYER_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
