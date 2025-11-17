@@ -14,10 +14,10 @@ export interface MonteCarloUCTPlayerConfig extends PlayerConfigBase {
 }
 
 interface NodeData {
-  lastCol: number | null;
-  lastPlayer: Player | null;
+  columnJustPlayed: number | null;
+  playerJustMoved: Player | null;
   played: number;
-  wins: number;
+  score: number;
 }
 
 export class MonteCarloTreeSearchPlayerV2 implements Player {
@@ -48,10 +48,10 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
     const availableCols = board.availableColumns();
     for (const col of availableCols) {
       node.addChild({
-        lastCol: col,
-        lastPlayer: this.#game.players[playerIndex],
+        columnJustPlayed: col,
+        playerJustMoved: this.#game.players[playerIndex],
         played: 0,
-        wins: 0,
+        score: 0,
       });
     }
   }
@@ -65,7 +65,7 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
         return Infinity;
       }
 
-      const winRate = child.data.wins / child.data.played;
+      const winRate = child.data.score / child.data.played;
       const explorationTerm = Math.sqrt(
         Math.log(totalSimulations) / child.data.played,
       );
@@ -83,13 +83,17 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
   #backpropagate(
     node: Readonly<Tree<NodeData>> | null,
     winResult: {winner: Player; discsCoordinates: [number, number][]} | null,
+    isDraw: boolean,
   ) {
     let current = node;
     while (current) {
       current.data.played += 1;
-      if (winResult?.winner === current.data.lastPlayer) {
-        current.data.wins += 1;
+      if (winResult?.winner === current.data.playerJustMoved) {
+        current.data.score += 1;
+      } else if (isDraw) {
+        current.data.score += 0.5;
       }
+
       current = current.parent;
     }
   }
@@ -97,9 +101,9 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
   #getBestMove(root: Readonly<Tree<NodeData>>): Readonly<Tree<NodeData>> {
     return root.children.reduce((best, child) => {
       const childWinRate =
-        child.data.played > 0 ? child.data.wins / child.data.played : -1;
+        child.data.played > 0 ? child.data.score / child.data.played : -1;
       const bestWinRate =
-        best.data.played > 0 ? best.data.wins / best.data.played : -1;
+        best.data.played > 0 ? best.data.score / best.data.played : -1;
 
       if (childWinRate > bestWinRate) {
         return child;
@@ -130,10 +134,10 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
     }
 
     const rootData: NodeData = {
-      lastCol: null,
-      lastPlayer: null,
+      columnJustPlayed: null,
+      playerJustMoved: null,
       played: 0,
-      wins: 0,
+      score: 0,
     };
 
     const searchTree = new Tree<NodeData>(rootData) as Readonly<Tree<NodeData>>;
@@ -171,7 +175,7 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
 
         // Play the selected move
         lastMove = board.insert(
-          currentNode.data.lastCol!,
+          currentNode.data.columnJustPlayed!,
           players[playerIndex],
         );
 
@@ -179,7 +183,8 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
         playerIndex = (playerIndex + 1) % players.length;
       } while (!board.isBoardFull() && !winResult);
 
-      this.#backpropagate(currentNode, winResult);
+      const isDraw = board.isBoardFull() && !winResult;
+      this.#backpropagate(currentNode, winResult, isDraw);
     };
 
     await runTimeSliced(iterate, this.#timeLimitMS);
@@ -192,14 +197,14 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
         .fill("")
         .map((_, index) => {
           const nthChild = searchTree.children.find(
-            (child) => child.data.lastCol === index,
+            (child) => child.data.columnJustPlayed === index,
           );
           if (!nthChild) {
-            return "---";
+            return "----";
           }
 
-          const score = nthChild.data.wins / nthChild.data.played;
-          const bestScore = bestChild.data.wins / bestChild.data.played;
+          const score = nthChild.data.score / nthChild.data.played;
+          const bestScore = bestChild.data.score / bestChild.data.played;
 
           return score === bestScore
             ? chalk.underline(score.toFixed(2))
@@ -211,6 +216,6 @@ export class MonteCarloTreeSearchPlayerV2 implements Player {
       `Computed ${iterations} iterations in ${Date.now() - startTime} ms`,
     );
 
-    return bestChild.data.lastCol!;
+    return bestChild.data.columnJustPlayed!;
   }
 }
