@@ -40,15 +40,15 @@ export class MonteCarloTreeSearchPlayerV1 implements Player {
     }
 
     interface NodeData {
-      lastCol: number | null;
-      lastPlayer: Player | null;
+      columnJustPlayed: number | null;
+      playerJustMoved: Player | null;
       played: number;
       wins: number;
     }
 
     const rootData: NodeData = {
-      lastCol: null,
-      lastPlayer: null,
+      columnJustPlayed: null,
+      playerJustMoved: null,
       played: 0,
       wins: 0,
     };
@@ -85,16 +85,16 @@ export class MonteCarloTreeSearchPlayerV1 implements Player {
 
         const existingChild = currentNode.children.find(({data}) => {
           return (
-            data.lastCol === randomCol &&
-            data.lastPlayer === players[playerIndex]
+            data.columnJustPlayed === randomCol &&
+            data.playerJustMoved === players[playerIndex]
           );
         });
 
         currentNode =
           existingChild ??
           currentNode.addChild({
-            lastCol: randomCol,
-            lastPlayer: players[playerIndex],
+            columnJustPlayed: randomCol,
+            playerJustMoved: players[playerIndex],
             played: 0,
             wins: 0,
           });
@@ -105,7 +105,7 @@ export class MonteCarloTreeSearchPlayerV1 implements Player {
 
       while (currentNode.parent) {
         currentNode.data.played += 1;
-        if (winResult?.winner === currentNode.data.lastPlayer) {
+        if (winResult?.winner === currentNode.data.playerJustMoved) {
           currentNode.data.wins += 1;
         }
         currentNode = currentNode.parent;
@@ -147,7 +147,7 @@ export class MonteCarloTreeSearchPlayerV1 implements Player {
         .fill("")
         .map((_, index) => {
           const nthChild = rootChildren.find(
-            (child) => child.data.lastCol === index,
+            (child) => child.data.columnJustPlayed === index,
           );
           if (!nthChild) {
             return "---";
@@ -166,6 +166,6 @@ export class MonteCarloTreeSearchPlayerV1 implements Player {
       `Computed ${iterations} iterations in ${Date.now() - startTime} ms`,
     );
 
-    return bestChild.data.lastCol!;
+    return bestChild.data.columnJustPlayed!;
   }
 }
